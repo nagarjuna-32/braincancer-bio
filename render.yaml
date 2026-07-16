@@ -1,0 +1,53 @@
+# Render Infrastructure-as-Code (Blueprint Specification)
+# Connect https://github.com/nagarjuna-32/braincancer-bio to Render to deploy automatically
+
+services:
+  # -------------------------------------------------------------------
+  # 1. Frontend Next.js Web App
+  # -------------------------------------------------------------------
+  - type: web
+    name: neurogen-frontend
+    env: node
+    region: singapore
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: neurogen-api
+          property: url
+
+  # -------------------------------------------------------------------
+  # 2. NeuroGen AI Unified Microservices API Gateway & Microservices
+  # -------------------------------------------------------------------
+  - type: web
+    name: neurogen-api
+    env: python
+    region: singapore
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: python scripts/run_services.py
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: PYTHONPATH
+        value: ./backend
+      - key: DATABASE_URL
+        fromDatabase:
+          name: neurogen-postgres
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+
+# -------------------------------------------------------------------
+# Managed PostgreSQL Database
+# -------------------------------------------------------------------
+databases:
+  - name: neurogen-postgres
+    region: singapore
+    plan: free
+    databaseName: neurogen_db
+    user: neurogen_user
