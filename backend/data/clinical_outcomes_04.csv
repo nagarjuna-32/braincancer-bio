@@ -1,0 +1,11 @@
+patient_id,age,idh_status,survival_days,vital_status
+PAT_000,50,Mutant,1343,1
+PAT_001,39,Wildtype,1071,0
+PAT_002,47,Mutant,1171,0
+PAT_003,37,Wildtype,876,1
+PAT_004,74,Mutant,344,0
+PAT_005,49,Wildtype,1051,1
+PAT_006,71,Mutant,465,1
+PAT_007,50,Wildtype,327,1
+PAT_008,60,Mutant,423,1
+PAT_009,59,Wildtype,1111,1

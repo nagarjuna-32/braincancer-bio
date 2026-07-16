@@ -19,6 +19,7 @@ SERVICES = [
     ("bioinformatics", "services/bioinformatics/main.py", 8006),
     ("reports", "services/reports/main.py", 8007),
     ("notification", "services/notification/main.py", 8008),
+    ("external_apis", "services/external_apis/main.py", 8009),
     ("gateway", "gateway/main.py", 8000)
 ]
 

@@ -278,7 +278,38 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Lower layout: Projects list (left) & notifications (right) */}
+        {/* Biomedical Intelligence Tools Bar */}
+        <section>
+          <h3 className="font-outfit font-extrabold text-xl text-white mb-4 flex items-center gap-2">
+            🌐 Live Biomedical APIs
+            <span style={{ fontSize: 11, background: "rgba(124,58,237,0.2)", border: "1px solid rgba(124,58,237,0.35)", color: "#c4b5fd", borderRadius: 6, padding: "2px 8px", fontWeight: 600 }}>10 APIs Connected</span>
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            {[
+              { label: "Gene Intelligence", icon: "🧬", desc: "NCBI · Ensembl · UniProt", href: "/gene-intelligence", color: "#7c3aed" },
+              { label: "GEO Datasets", icon: "📊", desc: "Expression datasets", href: "/gene-intelligence", color: "#795548" },
+              { label: "PubMed Papers", icon: "📄", desc: "Research publications", href: "/gene-intelligence", color: "#3f51b5" },
+              { label: "Pathways", icon: "🗺️", desc: "KEGG · Reactome", href: "/gene-intelligence", color: "#4caf50" },
+              { label: "Clinical Trials", icon: "🏥", desc: "ClinicalTrials.gov", href: "/gene-intelligence", color: "#8bc34a" },
+              { label: "Gene Ontology", icon: "🧪", desc: "GO annotations", href: "/gene-intelligence", color: "#00bcd4" },
+              { label: "GDC Mutations", icon: "🔴", desc: "TCGA somatic variants", href: "/gene-intelligence", color: "#f44336" },
+              { label: "KEGG Pathways", icon: "🔗", desc: "Metabolic networks", href: "/gene-intelligence", color: "#e91e63" },
+              { label: "UniProt Proteins", icon: "🔬", desc: "Protein functions", href: "/gene-intelligence", color: "#ff9800" },
+              { label: "Cache Status", icon: "⚡", desc: "Smart TTL caching", href: "/gene-intelligence", color: "#ffc107" },
+            ].map((tool) => (
+              <a key={tool.label} href={tool.href}
+                style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${tool.color}33`, borderRadius: 10, padding: "14px", borderTop: `3px solid ${tool.color}`, textDecoration: "none", display: "flex", flexDirection: "column", gap: 4, cursor: "pointer", transition: "background 0.2s" }}
+                onMouseEnter={e => (e.currentTarget.style.background = `${tool.color}11`)}
+                onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
+              >
+                <span style={{ fontSize: 20 }}>{tool.icon}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: tool.color }}>{tool.label}</span>
+                <span style={{ fontSize: 11, color: "#64748b" }}>{tool.desc}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+
         <section className="grid lg:grid-cols-12 gap-8 items-start">
           
           {/* Projects Panel */}

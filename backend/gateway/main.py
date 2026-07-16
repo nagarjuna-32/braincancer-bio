@@ -24,6 +24,7 @@ SERVICES = {
     "bioinformatics": os.getenv("BIOINFORMATICS_SERVICE_URL", "http://localhost:8006"),
     "reports": os.getenv("REPORT_SERVICE_URL", "http://localhost:8007"),
     "notifications": os.getenv("NOTIFICATION_SERVICE_URL", "http://localhost:8008"),
+    "bioapis": os.getenv("BIOAPIS_SERVICE_URL", "http://localhost:8009"),
 }
 
 @app.api_route("/api/v1/{service}/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
