@@ -1,0 +1,204 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: neurogen-postgres
+    environment:
+      POSTGRES_USER: neurogen_user
+      POSTGRES_PASSWORD: neurogen_password
+      POSTGRES_DB: neurogen_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - neurogen-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: neurogen-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - neurogen-net
+
+  gateway:
+    build:
+      context: ../backend
+      dockerfile: ../docker/Dockerfile.backend
+    command: uvicorn gateway.main:app --host 0.0.0.0 --port 8000
+    container_name: neurogen-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - AUTH_SERVICE_URL=http://auth:8001
+      - PROJECT_SERVICE_URL=http://project:8002
+      - DATASET_SERVICE_URL=http://dataset:8003
+      - ANALYSIS_SERVICE_URL=http://analysis:8004
+      - AI_SERVICE_URL=http://ai:8005
+      - BIOINFORMATICS_SERVICE_URL=http://bioinformatics:8006
+      - REPORT_SERVICE_URL=http://reports:8007
+      - NOTIFICATION_SERVICE_URL=http://notification:8008
+    depends_on:
+      - auth
+      - project
+      - dataset
+      - analysis
+      - ai
+      - bioinformatics
+      - reports
+      - notification
+    networks:
+      - neurogen-net
+
+  auth:
+    build:
+      context: ../backend
+      dockerfile: ../docker/Dockerfile.backend
+    command: uvicorn services.auth.main:app --host 0.0.0.0 --port 8001
+    container_name: neurogen-auth-service
+    ports:
+      - "8001:8001"
+    environment:
+      - DATABASE_URL=postgresql://neurogen_user:neurogen_password@postgres:5432/neurogen_db
+      - JWT_SECRET=neurogen_secret_key_2026
+    depends_on:
+      - postgres
+    networks:
+      - neurogen-net
+
+  project:
+    build:
+      context: ../backend
+      dockerfile: ../docker/Dockerfile.backend
+    command: uvicorn services.project.main:app --host 0.0.0.0 --port 8002
+    container_name: neurogen-project-service
+    ports:
+      - "8002:8002"
+    environment:
+      - DATABASE_URL=postgresql://neurogen_user:neurogen_password@postgres:5432/neurogen_db
+      - JWT_SECRET=neurogen_secret_key_2026
+    depends_on:
+      - postgres
+    networks:
+      - neurogen-net
+
+  dataset:
+    build:
+      context: ../backend
+      dockerfile: ../docker/Dockerfile.backend
+    command: uvicorn services.dataset.main:app --host 0.0.0.0 --port 8003
+    container_name: neurogen-dataset-service
+    ports:
+      - "8003:8003"
+    environment:
+      - DATABASE_URL=postgresql://neurogen_user:neurogen_password@postgres:5432/neurogen_db
+      - JWT_SECRET=neurogen_secret_key_2026
+      - STORAGE_DIR=/app/storage/datasets
+    volumes:
+      - dataset-storage:/app/storage/datasets
+    depends_on:
+      - postgres
+    networks:
+      - neurogen-net
+
+  analysis:
+    build:
+      context: ../backend
+      dockerfile: ../docker/Dockerfile.backend
+    command: uvicorn services.analysis.main:app --host 0.0.0.0 --port 8004
+    container_name: neurogen-analysis-service
+    ports:
+      - "8004:8004"
+    environment:
+      - DATABASE_URL=postgresql://neurogen_user:neurogen_password@postgres:5432/neurogen_db
+      - JWT_SECRET=neurogen_secret_key_2026
+      - BIOINFORMATICS_SERVICE_URL=http://bioinformatics:8006
+    depends_on:
+      - postgres
+      - bioinformatics
+    networks:
+      - neurogen-net
+
+  ai:
+    build:
+      context: ../backend
+      dockerfile: ../docker/Dockerfile.backend
+    command: uvicorn services.ai.main:app --host 0.0.0.0 --port 8005
+    container_name: neurogen-ai-service
+    ports:
+      - "8005:8005"
+    environment:
+      - DATABASE_URL=postgresql://neurogen_user:neurogen_password@postgres:5432/neurogen_db
+      - JWT_SECRET=neurogen_secret_key_2026
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      - postgres
+    networks:
+      - neurogen-net
+
+  bioinformatics:
+    build:
+      context: ../backend
+      dockerfile: ../docker/Dockerfile.backend
+    command: uvicorn services.bioinformatics.main:app --host 0.0.0.0 --port 8006
+    container_name: neurogen-bioinformatics-service
+    ports:
+      - "8006:8006"
+    networks:
+      - neurogen-net
+
+  reports:
+    build:
+      context: ../backend
+      dockerfile: ../docker/Dockerfile.backend
+    command: uvicorn services.reports.main:app --host 0.0.0.0 --port 8007
+    container_name: neurogen-report-service
+    ports:
+      - "8007:8007"
+    environment:
+      - DATABASE_URL=postgresql://neurogen_user:neurogen_password@postgres:5432/neurogen_db
+      - JWT_SECRET=neurogen_secret_key_2026
+    depends_on:
+      - postgres
+    networks:
+      - neurogen-net
+
+  notification:
+    build:
+      context: ../backend
+      dockerfile: ../docker/Dockerfile.backend
+    command: uvicorn services.notification.main:app --host 0.0.0.0 --port 8008
+    container_name: neurogen-notification-service
+    ports:
+      - "8008:8008"
+    environment:
+      - DATABASE_URL=postgresql://neurogen_user:neurogen_password@postgres:5432/neurogen_db
+      - JWT_SECRET=neurogen_secret_key_2026
+    depends_on:
+      - postgres
+    networks:
+      - neurogen-net
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: ../docker/Dockerfile.frontend
+    container_name: neurogen-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - gateway
+    networks:
+      - neurogen-net
+
+networks:
+  neurogen-net:
+    driver: bridge
+
+volumes:
+  pgdata:
+  dataset-storage:
