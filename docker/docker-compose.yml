@@ -40,6 +40,7 @@ services:
       - BIOINFORMATICS_SERVICE_URL=http://bioinformatics:8006
       - REPORT_SERVICE_URL=http://reports:8007
       - NOTIFICATION_SERVICE_URL=http://notification:8008
+      - BIOAPIS_SERVICE_URL=http://external_apis:8009
     depends_on:
       - auth
       - project
@@ -49,6 +50,7 @@ services:
       - bioinformatics
       - reports
       - notification
+      - external_apis
     networks:
       - neurogen-net
 
@@ -173,6 +175,22 @@ services:
     container_name: neurogen-notification-service
     ports:
       - "8008:8008"
+    environment:
+      - DATABASE_URL=postgresql://neurogen_user:neurogen_password@postgres:5432/neurogen_db
+      - JWT_SECRET=neurogen_secret_key_2026
+    depends_on:
+      - postgres
+    networks:
+      - neurogen-net
+
+  external_apis:
+    build:
+      context: ../backend
+      dockerfile: ../docker/Dockerfile.backend
+    command: uvicorn services.external_apis.main:app --host 0.0.0.0 --port 8009
+    container_name: neurogen-external-apis-service
+    ports:
+      - "8009:8009"
     environment:
       - DATABASE_URL=postgresql://neurogen_user:neurogen_password@postgres:5432/neurogen_db
       - JWT_SECRET=neurogen_secret_key_2026
