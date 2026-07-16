@@ -18,7 +18,7 @@ services:
         fromService:
           type: web
           name: neurogen-api
-          property: url
+          property: host
 
   # -------------------------------------------------------------------
   # 2. NeuroGen AI Unified Microservices API Gateway & Microservices
