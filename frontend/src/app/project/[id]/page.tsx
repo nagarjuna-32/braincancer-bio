@@ -11,6 +11,7 @@ import {
 
 // Import dynamic visualizations
 import PathwayNetwork from "../../../components/PathwayNetwork";
+import DiseaseIntelligence from "../../../components/DiseaseIntelligence";
 import { 
   QcPhredChart, 
   ExpressionVolcano, 
@@ -711,6 +712,7 @@ export default function ProjectWorkspacePage() {
           <nav className="flex flex-col gap-1">
             {[
               { id: "datasets", label: "Datasets", icon: HardDrive },
+              { id: "disease-intelligence", label: "Disease Intelligence", icon: Sparkles },
               { id: "qc", label: "Quality Control", icon: BarChart3 },
               { id: "expression", label: "Gene Expression", icon: Cpu },
               { id: "mutation", label: "Mutation Analysis", icon: AlertCircle },
@@ -874,6 +876,11 @@ export default function ProjectWorkspacePage() {
                 )}
               </div>
             </div>
+          )}
+
+          {/* TAB 1.5: DISEASE INTELLIGENCE */}
+          {activeTab === "disease-intelligence" && (
+            <DiseaseIntelligence user={user} token={token} projectId={projectId} />
           )}
 
           {/* TAB 2: QUALITY CONTROL (QC) */}
