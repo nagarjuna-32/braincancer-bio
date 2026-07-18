@@ -386,3 +386,54 @@ def get_analysis_details(analysis_id: int, email: str = Depends(get_current_user
         "created_at": analysis.created_at.isoformat(),
         "job": job_details
     }
+
+class E2EWorkflowRequest(BaseModel):
+    dataset_file_path: Optional[str] = "backend/data/expression_matrix.csv"
+    disease_type: Optional[str] = "Brain Cancer (GBM)"
+
+@app.post("/projects/{project_id}/pipeline/run-e2e")
+def run_master_e2e_pipeline(
+    project_id: int,
+    data: Optional[E2EWorkflowRequest] = None,
+    email: str = Depends(get_current_user_email),
+    db: Session = Depends(get_db)
+):
+    user = get_db_user(email, db)
+    verify_project_member(project_id, user.id, db)
+
+    from backend.services.analysis.master_workflow import MasterEndToEndWorkflow
+
+    file_path = data.dataset_file_path if data and data.dataset_file_path else "backend/data/expression_matrix.csv"
+    disease_type = data.disease_type if data and data.disease_type else "Brain Cancer (GBM)"
+
+    master_wf = MasterEndToEndWorkflow(project_id=project_id, dataset_file_path=file_path, disease_type=disease_type)
+    pipeline_result = master_wf.execute_full_pipeline()
+
+    # Log analysis entry
+    analysis = Analysis(
+        project_id=project_id,
+        name=f"End-to-End Analysis ({disease_type})",
+        type="Master Pipeline",
+        status="Completed",
+        created_by=user.id
+    )
+    db.add(analysis)
+    db.commit()
+    db.refresh(analysis)
+
+    job = AnalysisJob(
+        analysis_id=analysis.id,
+        status="Completed",
+        result=pipeline_result,
+        started_at=datetime.datetime.utcnow(),
+        completed_at=datetime.datetime.utcnow()
+    )
+    db.add(job)
+    db.commit()
+
+    return {
+        "analysis_id": analysis.id,
+        "status": "Completed",
+        "result": pipeline_result
+    }
+
