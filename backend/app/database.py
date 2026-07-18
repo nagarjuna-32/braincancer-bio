@@ -45,6 +45,7 @@ class Project(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(100), index=True)
     description: Mapped[Optional[str]] = mapped_column(Text)
+    disease_type: Mapped[str] = mapped_column(String(100), default="Brain Cancer (GBM)") # Brain Cancer, Lung Cancer, Breast Cancer, Colon Cancer, Leukemia, Alzheimer's, Parkinson's
     organization_id: Mapped[Optional[int]] = mapped_column(ForeignKey("organizations.id"))
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=datetime.datetime.utcnow)
 
