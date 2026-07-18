@@ -28,7 +28,7 @@ SECRET_KEY = os.getenv("JWT_SECRET", "neurogen_secret_key_2026")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 day
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 security = HTTPBearer()
 
 class RegisterSchema(BaseModel):
@@ -204,3 +204,76 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security), 
         return {"valid": True, "user_id": user.id, "email": user.email, "role": user.role}
     except HTTPException:
         return {"valid": False}
+
+class RefreshSchema(BaseModel):
+    refresh_token: Optional[str] = None
+
+@app.post("/refresh", response_model=TokenSchema)
+def refresh_token(data: Optional[RefreshSchema] = None, credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
+    user = get_current_user_from_token(credentials.credentials, db)
+    user_dict = {
+        "id": user.id,
+        "email": user.email,
+        "full_name": user.full_name,
+        "role": user.role,
+        "organization_id": user.organization_id
+    }
+    token = create_access_token(data={"sub": user.email}, expires_delta=datetime.timedelta(days=7))
+    return {"access_token": token, "token_type": "bearer", "user": user_dict}
+
+class ForgotPasswordSchema(BaseModel):
+    email: EmailStr
+
+@app.post("/forgot-password")
+def forgot_password(data: ForgotPasswordSchema, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == data.email).first()
+    if not user:
+        # Return success to prevent email enumeration
+        return {"message": "If the email exists, a password reset link has been dispatched."}
+    reset_token = create_access_token(data={"sub": user.email, "type": "reset"}, expires_delta=datetime.timedelta(hours=1))
+    return {"message": "Password reset token generated.", "reset_token": reset_token}
+
+class ResetPasswordSchema(BaseModel):
+    reset_token: str
+    new_password: str
+
+@app.post("/reset-password")
+def reset_password(data: ResetPasswordSchema, db: Session = Depends(get_db)):
+    try:
+        payload = jwt.decode(data.reset_token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        token_type: str = payload.get("type")
+        if not email or token_type != "reset":
+            raise HTTPException(status_code=400, detail="Invalid reset token")
+    except JWTError:
+        raise HTTPException(status_code=400, detail="Expired or invalid reset token")
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.hashed_password = get_password_hash(data.new_password)
+    db.commit()
+    return {"message": "Password successfully reset."}
+
+@app.post("/verify-email")
+def verify_email(token: str, db: Session = Depends(get_db)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+    except JWTError:
+        raise HTTPException(status_code=400, detail="Invalid verification token")
+    return {"message": f"Email {email} verified successfully."}
+
+@app.get("/permissions")
+def get_role_permissions(user: User = Depends(current_user)):
+    ROLE_PERMISSIONS = {
+        "Admin": ["create:project", "delete:project", "upload:dataset", "run:analysis", "manage:users"],
+        "Lab Head": ["create:project", "upload:dataset", "run:analysis", "export:report"],
+        "Researcher": ["create:project", "upload:dataset", "run:analysis"],
+        "Student": ["view:project", "run:analysis"],
+        "Reader": ["view:project"]
+    }
+    perms = ROLE_PERMISSIONS.get(user.role, ["view:project"])
+    return {"role": user.role, "permissions": perms}
+

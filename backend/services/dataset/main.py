@@ -163,6 +163,7 @@ async def upload_dataset_file(
         "VCF": "VCF",
         "BAM": "BAM",
         "DCM": "DICOM", "DICOM": "DICOM",
+        "NII": "NIfTI", "NIFTI": "NIfTI", "GZ": "NIfTI",
         "PDF": "PDF"
     }
     
@@ -214,3 +215,67 @@ async def upload_dataset_file(
         "qc_metrics": db_file.qc_metrics,
         "created_at": db_file.created_at.isoformat()
     }
+
+@app.post("/datasets/{dataset_id}/upload-chunk")
+async def upload_dataset_chunk(
+    dataset_id: int,
+    chunk_index: int = Form(...),
+    total_chunks: int = Form(...),
+    upload_id: str = Form(...),
+    filename: str = Form(...),
+    chunk: UploadFile = File(...),
+    email: str = Depends(get_current_user_email),
+    db: Session = Depends(get_db)
+):
+    user = get_db_user(email, db)
+    dataset = db.query(Dataset).filter(Dataset.id == dataset_id).first()
+    if not dataset:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+    verify_project_member(dataset.project_id, user.id, db)
+
+    chunks_dir = os.path.join(STORAGE_DIR, f"chunks_{upload_id}")
+    os.makedirs(chunks_dir, exist_ok=True)
+    chunk_path = os.path.join(chunks_dir, f"part_{chunk_index}")
+    
+    with open(chunk_path, "wb") as buffer:
+        shutil.copyfileobj(chunk.file, buffer)
+        
+    # Check if all chunks uploaded
+    uploaded_chunks = len([f for f in os.listdir(chunks_dir) if f.startswith("part_")])
+    if uploaded_chunks >= total_chunks:
+        # Reassemble file
+        dataset_dir = os.path.join(STORAGE_DIR, f"dataset_{dataset_id}")
+        os.makedirs(dataset_dir, exist_ok=True)
+        final_path = os.path.join(dataset_dir, filename)
+        
+        with open(final_path, "wb") as outfile:
+            for i in range(total_chunks):
+                part_file = os.path.join(chunks_dir, f"part_{i}")
+                if os.path.exists(part_file):
+                    with open(part_file, "rb") as infile:
+                        outfile.write(infile.read())
+        
+        # Cleanup chunks directory
+        shutil.rmtree(chunks_dir, ignore_errors=True)
+        file_size = os.path.getsize(final_path)
+        
+        ext = filename.split(".")[-1].upper() if "." in filename else ""
+        supported_types = {"FA": "FASTA", "FQ": "FASTQ", "CSV": "CSV", "VCF": "VCF", "BAM": "BAM", "DCM": "DICOM", "NII": "NIfTI"}
+        file_type = supported_types.get(ext, "CSV")
+
+        db_file = DatasetFile(
+            dataset_id=dataset_id,
+            filename=filename,
+            file_path=final_path,
+            file_size=file_size,
+            file_type=file_type,
+            status="uploaded",
+            qc_metrics={"format": file_type, "chunks": total_chunks, "notes": "Reassembled from chunked upload"}
+        )
+        db.add(db_file)
+        db.commit()
+        db.refresh(db_file)
+        return {"status": "completed", "file_id": db_file.id, "filename": filename, "file_size": file_size}
+
+    return {"status": "chunk_received", "chunk_index": chunk_index, "total_chunks": total_chunks, "received": uploaded_chunks}
+

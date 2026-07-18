@@ -208,6 +208,103 @@ class AuditLog(Base):
     target_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     timestamp: Mapped[datetime.datetime] = mapped_column(DateTime, default=datetime.datetime.utcnow)
 
+class Variant(Base):
+    __tablename__ = "variants"
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    gene_symbol: Mapped[str] = mapped_column(String(50), index=True)
+    chromosome: Mapped[str] = mapped_column(String(20))
+    position: Mapped[int] = mapped_column(Integer)
+    ref_allele: Mapped[str] = mapped_column(String(10))
+    alt_allele: Mapped[str] = mapped_column(String(10))
+    consequence: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    clinvar_sig: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=datetime.datetime.utcnow)
+
+class Protein(Base):
+    __tablename__ = "proteins"
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    accession: Mapped[str] = mapped_column(String(50), unique=True, index=True)
+    name: Mapped[str] = mapped_column(String(200))
+    gene_symbol: Mapped[str] = mapped_column(String(50), index=True)
+    length: Mapped[int] = mapped_column(Integer)
+    function: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    domains: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=datetime.datetime.utcnow)
+
+class Pathway(Base):
+    __tablename__ = "pathways"
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    pathway_id: Mapped[str] = mapped_column(String(100), unique=True, index=True)
+    name: Mapped[str] = mapped_column(String(255))
+    source: Mapped[str] = mapped_column(String(50))  # KEGG, Reactome, GO
+    genes: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=datetime.datetime.utcnow)
+
+class ClinicalTrial(Base):
+    __tablename__ = "clinical_trials"
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    nct_id: Mapped[str] = mapped_column(String(50), unique=True, index=True)
+    title: Mapped[str] = mapped_column(String(255))
+    condition: Mapped[str] = mapped_column(String(100))
+    status: Mapped[str] = mapped_column(String(50))
+    phase: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    sponsor: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    url: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=datetime.datetime.utcnow)
+
+class MLModel(Base):
+    __tablename__ = "models"
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String(100), unique=True, index=True)
+    type: Mapped[str] = mapped_column(String(50))  # MRI Classification, Expression Prognosis, Variant Caller
+    framework: Mapped[str] = mapped_column(String(50))  # PyTorch, Scikit-learn
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=datetime.datetime.utcnow)
+
+    versions = relationship("ModelVersion", back_populates="model", cascade="all, delete-orphan")
+
+class ModelVersion(Base):
+    __tablename__ = "model_versions"
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    model_id: Mapped[int] = mapped_column(ForeignKey("models.id", ondelete="CASCADE"))
+    version: Mapped[str] = mapped_column(String(50))  # v1.0.0
+    accuracy: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    auc_roc: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    file_path: Mapped[str] = mapped_column(String(255))
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=datetime.datetime.utcnow)
+
+    model = relationship("MLModel", back_populates="versions")
+
+class Workflow(Base):
+    __tablename__ = "workflows"
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"))
+    name: Mapped[str] = mapped_column(String(100))
+    pipeline_type: Mapped[str] = mapped_column(String(50))  # RNA-Seq, Somatic Calling, MRI Segmentation
+    definition: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=datetime.datetime.utcnow)
+
+class Experiment(Base):
+    __tablename__ = "experiments"
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"))
+    name: Mapped[str] = mapped_column(String(100))
+    parameters: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    metrics: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    status: Mapped[str] = mapped_column(String(50), default="Completed")
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=datetime.datetime.utcnow)
+
+class Note(Base):
+    __tablename__ = "notes"
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    title: Mapped[str] = mapped_column(String(150))
+    content: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=datetime.datetime.utcnow)
+
 def init_db():
     Base.metadata.create_all(bind=engine)
 

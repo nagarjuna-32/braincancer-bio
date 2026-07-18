@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neurogen-api-gateway
+  namespace: default
+  labels:
+    app: neurogen-gateway
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: neurogen-gateway
+  template:
+    metadata:
+      labels:
+        app: neurogen-gateway
+    spec:
+      containers:
+      - name: gateway
+        image: neurogen/gateway:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: PORT
+          value: "8000"
+        resources:
+          limits:
+            cpu: "1000m"
+            memory: "1Gi"
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: neurogen-gateway-service
+spec:
+  type: ClusterIP
+  selector:
+    app: neurogen-gateway
+  ports:
+  - port: 8000
+    targetPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neurogen-frontend
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: neurogen-frontend
+  template:
+    metadata:
+      labels:
+        app: neurogen-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: neurogen/frontend:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NEXT_PUBLIC_API_URL
+          value: "http://neurogen-gateway-service:8000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: neurogen-frontend-service
+spec:
+  type: ClusterIP
+  selector:
+    app: neurogen-frontend
+  ports:
+  - port: 3000
+    targetPort: 3000
