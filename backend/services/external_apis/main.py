@@ -38,13 +38,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from app.redis_client import redis_cache_get, redis_cache_set
+
 # =====================================================================
-# In-Memory Cache (TTL-based, simulates Redis pattern)
+# Distributed Cache (Redis primary, in-memory secondary TTL fallback)
 # =====================================================================
 _cache: Dict[str, Dict[str, Any]] = {}
 
 def cache_get(key: str) -> Optional[Any]:
-    """Retrieve item from cache if not expired."""
+    """Retrieve item from Redis cache or in-memory fallback if not expired."""
+    r_data = redis_cache_get(key)
+    if r_data is not None:
+        return r_data
+
     if key in _cache:
         item = _cache[key]
         if time.time() < item["expires_at"]:
@@ -54,7 +60,8 @@ def cache_get(key: str) -> Optional[Any]:
     return None
 
 def cache_set(key: str, data: Any, ttl_seconds: int = 21600):
-    """Store item in cache with TTL. Default 6 hours."""
+    """Store item in Redis cache and in-memory fallback with TTL. Default 6 hours."""
+    redis_cache_set(key, data, ttl_seconds)
     _cache[key] = {
         "data": data,
         "expires_at": time.time() + ttl_seconds
