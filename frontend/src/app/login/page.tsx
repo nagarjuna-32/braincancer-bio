@@ -121,16 +121,16 @@ export default function LoginPage() {
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Email Address</label>
               <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
                   <Mail className="w-4 h-4" />
                 </span>
                 <input
                   type="email"
                   required
-                  placeholder="name@organization.com"
+                  placeholder="Enter your email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 rounded-lg glass-input text-sm"
+                  className="w-full pl-11 pr-4 py-3 rounded-lg glass-input text-sm text-gray-100 placeholder:text-gray-500"
                 />
               </div>
             </div>
@@ -142,16 +142,16 @@ export default function LoginPage() {
                 <Link href="#" className="text-xs text-brand-teal hover:underline font-medium">Forgot?</Link>
               </div>
               <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
                   <Lock className="w-4 h-4" />
                 </span>
                 <input
                   type="password"
                   required
-                  placeholder="••••••••"
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 rounded-lg glass-input text-sm"
+                  className="w-full pl-11 pr-4 py-3 rounded-lg glass-input text-sm text-gray-100 placeholder:text-gray-500"
                 />
               </div>
             </div>

@@ -88,16 +88,16 @@ export default function RegisterPage() {
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Full Name</label>
                 <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
                     <User className="w-4 h-4" />
                   </span>
                   <input
                     type="text"
                     required
-                    placeholder="Dr. Nagarjuna N"
+                    placeholder="Enter full name"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 rounded-lg glass-input text-sm"
+                    className="w-full pl-11 pr-4 py-3 rounded-lg glass-input text-sm text-gray-100 placeholder:text-gray-500"
                   />
                 </div>
               </div>
@@ -106,16 +106,16 @@ export default function RegisterPage() {
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Email Address</label>
                 <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
                     <Mail className="w-4 h-4" />
                   </span>
                   <input
                     type="email"
                     required
-                    placeholder="name@university.edu"
+                    placeholder="Enter email address"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 rounded-lg glass-input text-sm"
+                    className="w-full pl-11 pr-4 py-3 rounded-lg glass-input text-sm text-gray-100 placeholder:text-gray-500"
                   />
                 </div>
               </div>
@@ -127,15 +127,15 @@ export default function RegisterPage() {
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Organization (Optional)</label>
                 <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
                     <Building className="w-4 h-4" />
                   </span>
                   <input
                     type="text"
-                    placeholder="Harvard Medical"
+                    placeholder="Enter organization name"
                     value={orgName}
                     onChange={(e) => setOrgName(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 rounded-lg glass-input text-sm"
+                    className="w-full pl-11 pr-4 py-3 rounded-lg glass-input text-sm text-gray-100 placeholder:text-gray-500"
                   />
                 </div>
               </div>
@@ -144,13 +144,13 @@ export default function RegisterPage() {
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Workspace Role</label>
                 <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none z-10">
                     <ShieldAlert className="w-4 h-4" />
                   </span>
                   <select
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 rounded-lg glass-input text-sm appearance-none cursor-pointer"
+                    className="w-full pl-11 pr-4 py-3 rounded-lg glass-input text-sm text-gray-100 appearance-none cursor-pointer"
                     style={{ colorScheme: "dark" }}
                   >
                     <option value="Researcher">Researcher (Bioinformatics)</option>
@@ -167,16 +167,16 @@ export default function RegisterPage() {
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Password</label>
               <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
                   <Lock className="w-4 h-4" />
                 </span>
                 <input
                   type="password"
                   required
-                  placeholder="Minimum 8 characters"
+                  placeholder="Enter password (min 8 chars)"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 rounded-lg glass-input text-sm"
+                  className="w-full pl-11 pr-4 py-3 rounded-lg glass-input text-sm text-gray-100 placeholder:text-gray-500"
                 />
               </div>
             </div>
