@@ -59,51 +59,16 @@ export default function DashboardPage() {
         if (notifResp.ok) {
           notifData = await notifResp.json();
         }
-      } catch (err) {
-        console.error("Error loading notifications, loading demo fallback", err);
-      }
 
-      if (projData.length === 0 || token === "demo_token_2026") {
-        projData = [
-          {
-            id: 4,
-            name: "Glioblastoma EGFRvIII Clinical Study",
-            description: "Mapping downstream PI3K/mTOR pathways in patient cohorts STR-04...",
-            created_at: new Date().toISOString(),
-            role: "Owner"
-          },
-          {
-            id: 5,
-            name: "Diffuse Astrocytoma IDH1/TP53 Mapping",
-            description: "Longitudinal clinical study evaluating Kaplan-Meier survival curves in secondary glioma cohorts.",
-            created_at: new Date(Date.now() - 86400000).toISOString(),
-            role: "Supervise"
-          }
-        ];
+        setProjects(projData);
+        setNotifications(notifData);
+      } catch (err: any) {
+        console.error("Dashboard error:", err);
+        setProjects([]);
+        setNotifications([]);
+      } finally {
+        setLoading(false);
       }
-
-      if (notifData.length === 0 || token === "demo_token_2026") {
-        notifData = [
-          {
-            id: 1,
-            title: "Variant Calling Pipeline Complete",
-            message: "GATK somatic calling for tumor sample STR_04 completed successfully. 84 variants annotated.",
-            is_read: false,
-            created_at: new Date().toISOString()
-          },
-          {
-            id: 2,
-            title: "FASTQ Quality Check Complete",
-            message: "Reads quality metrics processed. Average Phred score: 34.2.",
-            is_read: true,
-            created_at: new Date(Date.now() - 3600000).toISOString()
-          }
-        ];
-      }
-
-      setProjects(projData);
-      setNotifications(notifData);
-      setLoading(false);
     };
 
     fetchData();

@@ -98,113 +98,62 @@ export default function ProjectWorkspacePage() {
         if (projResp.ok) {
           projData = await projResp.json();
         }
-      } catch (err) {
-        console.error("Could not access project API, loading fallback", err);
-      }
 
-      if (!projData || token === "demo_token_2026") {
-        // Load rich clinical workspace fallback
-        projData = {
-          id: Number(projectId),
-          name: Number(projectId) === 5 ? "Diffuse Astrocytoma IDH1/TP53 Mapping" : "Glioblastoma EGFRvIII Clinical Study",
-          description: Number(projectId) === 5 ? "Longitudinal clinical study evaluating Kaplan-Meier survival curves in secondary glioma cohorts." : "Mapping downstream PI3K/mTOR pathways in patient cohorts STR-04...",
-          created_at: new Date(Date.now() - 86400000).toISOString(),
-          role: "Owner"
-        };
-
-        allFiles = [
-          { id: 1, filename: "expression_matrix.csv", file_type: "CSV", file_size: 1205312, status: "parsed", dataset_name: "Transcriptomic Matrix", dataset_id: 1 },
-          { id: 2, filename: "egfr_somatic_variants.vcf", file_type: "VCF", file_size: 838204, status: "parsed", dataset_name: "Somatic VCF Calls", dataset_id: 2 },
-          { id: 3, filename: "tumor_reads_R1.fastq", file_type: "FASTQ", file_size: 24510200, status: "parsed", dataset_name: "Sequencing Reads FASTQ", dataset_id: 3 },
-          { id: 4, filename: "brain_mri_T1.dcm", file_type: "DICOM", file_size: 4831200, status: "parsed", dataset_name: "MRI Imaging Scans", dataset_id: 4 }
-        ];
-
-        analysisData = [
-          { id: 1, name: "FASTQ Reads QC Analysis", type: "QC", status: "Completed", created_at: new Date().toISOString() },
-          { id: 2, name: "Differential Expression Mapping", type: "Expression", status: "Completed", created_at: new Date().toISOString() },
-          { id: 3, name: "EGFR Mutation Lollipop Chart", type: "Mutation", status: "Completed", created_at: new Date().toISOString() },
-          { id: 4, name: "Overall Survival KM Estimate", type: "Survival", status: "Completed", created_at: new Date().toISOString() },
-          { id: 5, name: "EGFR Pathway Regulatory Network", type: "Pathway", status: "Completed", created_at: new Date().toISOString() }
-        ];
-
-        repData = [
-          {
-            id: 1,
-            name: "Glioblastoma Cohort Study Report v1",
-            format: "PDF",
-            content: "Research summary report describing overall genomic variations.",
-            created_at: new Date().toISOString(),
-            created_by: 1
-          }
-        ];
-
-        memData = [
-          { id: 1, role: "Owner", user: { id: 1, full_name: user?.full_name || "Dr. Nagarjuna N", email: user?.email || "researcher@lab.org", role: user?.role || "Researcher" } },
-          { id: 2, role: "Supervise", user: { id: 2, full_name: "Prof. Sarah Smith", email: "smith@univ.edu", role: "Professor" } },
-          { id: 3, role: "Collaborator", user: { id: 3, full_name: "John Doe", email: "doe@lab.org", role: "Student" } }
-        ];
-
-        chats = [
-          { id: 1, title: "Molecular Discussion", created_at: new Date().toISOString() }
-        ];
-      } else {
-        try {
-          // Datasets
-          const datasetResp = await fetch(`http://localhost:8000/api/v1/datasets/projects/${projectId}/datasets`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          if (datasetResp.ok) {
-            dsData = await datasetResp.json();
-            setDatasets(dsData);
-            
-            // Flatten files for display
-            for (const ds of dsData) {
-              const detailResp = await fetch(`http://localhost:8000/api/v1/datasets/datasets/${ds.id}`, {
-                headers: { Authorization: `Bearer ${token}` }
+        // Datasets
+        const datasetResp = await fetch(`http://localhost:8000/api/v1/datasets/projects/${projectId}/datasets`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (datasetResp.ok) {
+          dsData = await datasetResp.json();
+          setDatasets(dsData);
+          
+          // Flatten files for display
+          for (const ds of dsData) {
+            const detailResp = await fetch(`http://localhost:8000/api/v1/datasets/datasets/${ds.id}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            if (detailResp.ok) {
+              const detail = await detailResp.json();
+              detail.files.forEach((f: any) => {
+                allFiles.push({ ...f, dataset_name: ds.name, dataset_id: ds.id });
               });
-              if (detailResp.ok) {
-                const detail = await detailResp.json();
-                detail.files.forEach((f: any) => {
-                  allFiles.push({ ...f, dataset_name: ds.name, dataset_id: ds.id });
-                });
-              }
             }
           }
-
-          // Analyses
-          const analysisResp = await fetch(`http://localhost:8000/api/v1/analyses/projects/${projectId}/analyses`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          if (analysisResp.ok) {
-            analysisData = await analysisResp.json();
-          }
-
-          // Reports
-          const reportsResp = await fetch(`http://localhost:8000/api/v1/reports/projects/${projectId}/reports`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          if (reportsResp.ok) {
-            repData = await reportsResp.json();
-          }
-
-          // Members
-          const memResp = await fetch(`http://localhost:8000/api/v1/projects/projects/${projectId}/members`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          if (memResp.ok) {
-            memData = await memResp.json();
-          }
-
-          // AI Chat sessions
-          const chatResp = await fetch(`http://localhost:8000/api/v1/ai/projects/${projectId}/chats`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          if (chatResp.ok) {
-            chats = await chatResp.json();
-          }
-        } catch (err) {
-          console.error("Fetch details failed, loading demo fallback", err);
         }
+
+        // Analyses
+        const analysisResp = await fetch(`http://localhost:8000/api/v1/analyses/projects/${projectId}/analyses`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (analysisResp.ok) {
+          analysisData = await analysisResp.json();
+        }
+
+        // Reports
+        const reportsResp = await fetch(`http://localhost:8000/api/v1/reports/projects/${projectId}/reports`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (reportsResp.ok) {
+          repData = await reportsResp.json();
+        }
+
+        // Members
+        const memResp = await fetch(`http://localhost:8000/api/v1/projects/projects/${projectId}/members`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (memResp.ok) {
+          memData = await memResp.json();
+        }
+
+        // AI Chat sessions
+        const chatResp = await fetch(`http://localhost:8000/api/v1/ai/projects/${projectId}/chats`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (chatResp.ok) {
+          chats = await chatResp.json();
+        }
+      } catch (err) {
+        console.error("Fetch details failed:", err);
       }
 
       setProject(projData);
@@ -216,13 +165,8 @@ export default function ProjectWorkspacePage() {
 
       if (chats.length > 0) {
         handleSelectChat(chats[0].id);
-      } else if (token !== "demo_token_2026") {
-        createChatSession();
       } else {
-        setActiveChat({ id: 1, title: "Molecular Discussion" });
-        setChatMessages([
-          { id: 1, role: "assistant", content: "Welcome to the NeuroGen AI Research workspace assistant! I can help you analyze mutations, explain pathway structures, summarize uploaded datasets, and design hypotheses. Ask me anything to get started." }
-        ]);
+        createChatSession();
       }
       setLoading(false);
     };

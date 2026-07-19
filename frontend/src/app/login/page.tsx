@@ -79,18 +79,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleDemoLogin = () => {
-    localStorage.setItem("token", "demo_token_2026");
-    localStorage.setItem("user", JSON.stringify({
-      id: 1,
-      email: "demo.researcher@neurogen.ai",
-      full_name: "Dr. Nagarjuna N (Demo)",
-      role: "Researcher",
-      organization_id: 1
-    }));
-    router.push("/dashboard");
-  };
-
   return (
     <div className="flex-1 min-h-screen bg-brand-dark flex items-center justify-center px-6 relative overflow-hidden">
       {/* Background Orbs */}
@@ -193,16 +181,6 @@ export default function LoginPage() {
                 Sign in with Google
               </>
             )}
-          </button>
-
-          {/* Demo login */}
-          <button
-            type="button"
-            onClick={handleDemoLogin}
-            className="w-full py-3 rounded-lg bg-gradient-to-r from-brand-purple to-brand-pink hover:opacity-95 text-white font-bold transition flex items-center justify-center gap-2 text-sm shadow-lg shadow-brand-purple/10"
-          >
-            Explore Demo Workspace
-            <ArrowRight className="w-4 h-4" />
           </button>
         </div>
 
