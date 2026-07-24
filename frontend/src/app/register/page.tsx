@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Brain, User, Mail, Lock, Building, ArrowRight, AlertCircle, Loader, ShieldAlert } from "lucide-react";
 
+import { API_BASE_URL } from "@/utils/api";
+
 export default function RegisterPage() {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
@@ -26,7 +28,7 @@ export default function RegisterPage() {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:8000/api/v1/auth/register", {
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Brain, Mail, Lock, ArrowRight, Globe, AlertCircle, Loader } from "lucide-react";
 
+import { API_BASE_URL } from "@/utils/api";
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -24,7 +26,7 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:8000/api/v1/auth/login", {
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -56,7 +58,7 @@ export default function LoginPage() {
       // Simulate Google OAuth flow by generating a mock token and passing to Auth service
       const mockGoogleToken = `google_oauth_token_${Math.random().toString(36).substring(2, 15)}`;
       
-      const response = await fetch("http://localhost:8000/api/v1/auth/google", {
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/google`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: mockGoogleToken }),
