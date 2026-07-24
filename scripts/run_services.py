@@ -46,7 +46,6 @@ def main():
 
     env = os.environ.copy()
     env["PYTHONPATH"] = BACKEND_DIR
-
     cmd = [
         sys.executable,
         "-m",
