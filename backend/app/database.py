@@ -108,9 +108,11 @@ class Analysis(Base):
     __tablename__ = "analyses"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"))
+    dataset_file_id: Mapped[Optional[int]] = mapped_column(ForeignKey("dataset_files.id", ondelete="SET NULL"), nullable=True)
     name: Mapped[str] = mapped_column(String(100))
     type: Mapped[str] = mapped_column(String(50))  # QC, Expression, Mutation, Survival, Pathway
     status: Mapped[str] = mapped_column(String(50), default="Pending")  # Pending, Running, Completed, Failed
+    output_data: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     created_by: Mapped[int] = mapped_column(ForeignKey("users.id"))
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=datetime.datetime.utcnow)
 
@@ -123,7 +125,8 @@ class AnalysisJob(Base):
     analysis_id: Mapped[int] = mapped_column(ForeignKey("analyses.id", ondelete="CASCADE"))
     celery_task_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     status: Mapped[str] = mapped_column(String(50), default="Pending")
-    error: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    progress: Mapped[float] = mapped_column(Float, default=0.0)
+    error_log: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     result: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     started_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, nullable=True)
     completed_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, nullable=True)
