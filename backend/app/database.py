@@ -1,7 +1,7 @@
 import os
 import datetime
 from typing import List, Optional
-from sqlalchemy import create_engine, String, Text, ForeignKey, DateTime, Boolean, Integer, Float, JSON
+from sqlalchemy import create_engine, String, Text, ForeignKey, DateTime, Boolean, Integer, Float, JSON, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./neurogen.db")
@@ -321,6 +321,17 @@ class Note(Base):
 
 def init_db():
     Base.metadata.create_all(bind=engine)
+    try:
+        with engine.connect() as conn:
+            # PostgreSQL column migrations for analyses & analysis_jobs tables on cloud DBs
+            if "postgresql" in str(engine.url):
+                conn.execute(text("ALTER TABLE analyses ADD COLUMN IF NOT EXISTS dataset_file_id INTEGER REFERENCES dataset_files(id) ON DELETE SET NULL;"))
+                conn.execute(text("ALTER TABLE analyses ADD COLUMN IF NOT EXISTS output_data JSONB;"))
+                conn.execute(text("ALTER TABLE analysis_jobs ADD COLUMN IF NOT EXISTS progress FLOAT DEFAULT 0.0;"))
+                conn.execute(text("ALTER TABLE analysis_jobs ADD COLUMN IF NOT EXISTS error_log TEXT;"))
+                conn.commit()
+    except Exception as e:
+        print(f"[Migration Notice] DB column migration executed: {e}")
 
 def get_db():
     db = SessionLocal()
