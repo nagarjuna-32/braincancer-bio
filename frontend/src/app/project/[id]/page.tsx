@@ -357,12 +357,15 @@ export default function ProjectWorkspacePage() {
 
       if (!response.ok) throw new Error("Failed to trigger pipeline");
       const analysis = await response.json();
+      const targetId = analysis.id || analysis.analysis_id;
       
       // Add to analysis list
       setAnalyses([analysis, ...analyses]);
       
       // Select it and load details
-      handleSelectAnalysis(analysis.analysis_id);
+      if (targetId) {
+        handleSelectAnalysis(targetId);
+      }
       alert(`${type} analysis started in the background.`);
 
     } catch (err: any) {

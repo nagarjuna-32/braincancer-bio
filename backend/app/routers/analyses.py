@@ -223,6 +223,7 @@ def create_analysis(
     
     return {
         "id": analysis.id,
+        "analysis_id": analysis.id,
         "project_id": analysis.project_id,
         "name": analysis.name,
         "type": analysis.type,
