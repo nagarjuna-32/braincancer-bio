@@ -189,6 +189,7 @@ def run_analysis_pipeline(analysis_id: int, job_id: int, file_id: Optional[int],
         db.commit()
 
 @router.post("/projects/{project_id}/analyses")
+@router.post("/projects/{project_id}")
 def create_analysis(
     project_id: int,
     data: AnalysisCreate,
@@ -236,6 +237,7 @@ def create_analysis(
     }
 
 @router.get("/projects/{project_id}/analyses")
+@router.get("/projects/{project_id}")
 def list_analyses(project_id: int, email: str = Depends(get_current_user_email), db: Session = Depends(get_db)):
     user = get_db_user(email, db)
     verify_project_member(project_id, user.id, db)
