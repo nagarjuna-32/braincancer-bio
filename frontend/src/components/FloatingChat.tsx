@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { Brain, X, Send, Loader, Sparkles } from "lucide-react";
+import { API_BASE_URL } from "@/utils/api";
 
 interface Message {
   id: number;
@@ -56,7 +57,7 @@ export default function FloatingChat() {
     if (storedToken && activeProjectId) {
       try {
         // Find or create a chat session first for this project
-        const sessionResp = await fetch(`http://localhost:8000/api/v1/ai/projects/${activeProjectId}/chats`, {
+        const sessionResp = await fetch(`${API_BASE_URL}/api/v1/ai/projects/${activeProjectId}/chats`, {
           headers: { Authorization: `Bearer ${storedToken}` }
         });
         
@@ -66,7 +67,7 @@ export default function FloatingChat() {
           if (sessions.length > 0) {
             chatId = sessions[0].id;
           } else {
-            const createResp = await fetch(`http://localhost:8000/api/v1/ai/projects/${activeProjectId}/chats`, {
+            const createResp = await fetch(`${API_BASE_URL}/api/v1/ai/projects/${activeProjectId}/chats`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -82,7 +83,7 @@ export default function FloatingChat() {
         }
 
         if (chatId) {
-          const msgResp = await fetch(`http://localhost:8000/api/v1/ai/chats/${chatId}/messages`, {
+          const msgResp = await fetch(`${API_BASE_URL}/api/v1/ai/chats/${chatId}/messages`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
