@@ -12,6 +12,7 @@ import {
 // Import dynamic visualizations
 import PathwayNetwork from "../../../components/PathwayNetwork";
 import DiseaseIntelligence from "../../../components/DiseaseIntelligence";
+import { API_BASE_URL } from "../../../utils/api";
 import { 
   QcPhredChart, 
   ExpressionVolcano, 
@@ -92,7 +93,7 @@ export default function ProjectWorkspacePage() {
 
       try {
         // Project info
-        const projResp = await fetch(`http://localhost:8000/api/v1/projects/projects/${projectId}`, {
+        const projResp = await fetch(`${API_BASE_URL}/api/v1/projects/projects/${projectId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (projResp.ok) {
@@ -100,7 +101,7 @@ export default function ProjectWorkspacePage() {
         }
 
         // Datasets
-        const datasetResp = await fetch(`http://localhost:8000/api/v1/datasets/projects/${projectId}/datasets`, {
+        const datasetResp = await fetch(`${API_BASE_URL}/api/v1/datasets/projects/${projectId}/datasets`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (datasetResp.ok) {
@@ -109,7 +110,7 @@ export default function ProjectWorkspacePage() {
           
           // Flatten files for display
           for (const ds of dsData) {
-            const detailResp = await fetch(`http://localhost:8000/api/v1/datasets/datasets/${ds.id}`, {
+            const detailResp = await fetch(`${API_BASE_URL}/api/v1/datasets/datasets/${ds.id}`, {
               headers: { Authorization: `Bearer ${token}` }
             });
             if (detailResp.ok) {
@@ -122,7 +123,7 @@ export default function ProjectWorkspacePage() {
         }
 
         // Analyses
-        const analysisResp = await fetch(`http://localhost:8000/api/v1/analyses/projects/${projectId}/analyses`, {
+        const analysisResp = await fetch(`${API_BASE_URL}/api/v1/analyses/projects/${projectId}/analyses`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (analysisResp.ok) {
@@ -130,7 +131,7 @@ export default function ProjectWorkspacePage() {
         }
 
         // Reports
-        const reportsResp = await fetch(`http://localhost:8000/api/v1/reports/projects/${projectId}/reports`, {
+        const reportsResp = await fetch(`${API_BASE_URL}/api/v1/reports/projects/${projectId}/reports`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (reportsResp.ok) {
@@ -138,7 +139,7 @@ export default function ProjectWorkspacePage() {
         }
 
         // Members
-        const memResp = await fetch(`http://localhost:8000/api/v1/projects/projects/${projectId}/members`, {
+        const memResp = await fetch(`${API_BASE_URL}/api/v1/projects/projects/${projectId}/members`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (memResp.ok) {
@@ -146,7 +147,7 @@ export default function ProjectWorkspacePage() {
         }
 
         // AI Chat sessions
-        const chatResp = await fetch(`http://localhost:8000/api/v1/ai/projects/${projectId}/chats`, {
+        const chatResp = await fetch(`${API_BASE_URL}/api/v1/ai/projects/${projectId}/chats`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (chatResp.ok) {
@@ -178,7 +179,7 @@ export default function ProjectWorkspacePage() {
   const createChatSession = async () => {
      if (!token) return;
      try {
-       const resp = await fetch(`http://localhost:8000/api/v1/ai/projects/${projectId}/chats`, {
+       const resp = await fetch(`${API_BASE_URL}/api/v1/ai/projects/${projectId}/chats`, {
           method: "POST",
           headers: {
              "Content-Type": "application/json",
@@ -200,7 +201,7 @@ export default function ProjectWorkspacePage() {
   const handleSelectChat = async (chatId: number) => {
     if (!token) return;
     try {
-      const resp = await fetch(`http://localhost:8000/api/v1/ai/chats/${chatId}`, {
+      const resp = await fetch(`${API_BASE_URL}/api/v1/ai/chats/${chatId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (resp.ok) {
@@ -234,7 +235,7 @@ export default function ProjectWorkspacePage() {
     setChatMessages(prev => [...prev, { id: userMsgId, role: "user", content: userText }]);
 
     try {
-      const resp = await fetch(`http://localhost:8000/api/v1/ai/chats/${activeChat.id}/messages`, {
+      const resp = await fetch(`${API_BASE_URL}/api/v1/ai/chats/${activeChat.id}/messages`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -313,7 +314,7 @@ export default function ProjectWorkspacePage() {
     try {
       // 1. Create dataset grouping first
       const datasetName = selectedFileForUpload.name.split(".")[0] + " Dataset";
-      const createDsResp = await fetch(`http://localhost:8000/api/v1/datasets/projects/${projectId}/datasets`, {
+      const createDsResp = await fetch(`${API_BASE_URL}/api/v1/datasets/projects/${projectId}/datasets`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -329,7 +330,7 @@ export default function ProjectWorkspacePage() {
       const formData = new FormData();
       formData.append("file", selectedFileForUpload);
 
-      const uploadResp = await fetch(`http://localhost:8000/api/v1/datasets/datasets/${ds.id}/upload`, {
+      const uploadResp = await fetch(`${API_BASE_URL}/api/v1/datasets/datasets/${ds.id}/upload`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`
@@ -360,7 +361,7 @@ export default function ProjectWorkspacePage() {
     setRunningPipeline(true);
     try {
       const name = `${type} Pipeline - ${new Date().toLocaleTimeString()}`;
-      const response = await fetch(`http://localhost:8000/api/v1/analyses/projects/${projectId}/analyses`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/analyses/projects/${projectId}/analyses`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -395,7 +396,7 @@ export default function ProjectWorkspacePage() {
     if (!token) return;
     setLoadingAnalysis(true);
     try {
-      const resp = await fetch(`http://localhost:8000/api/v1/analyses/analyses/${analysisId}`, {
+      const resp = await fetch(`${API_BASE_URL}/api/v1/analyses/analyses/${analysisId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (resp.ok) {
@@ -535,7 +536,7 @@ export default function ProjectWorkspacePage() {
 
     setInviteLoading(true);
     try {
-      const resp = await fetch(`http://localhost:8000/api/v1/projects/projects/${projectId}/members`, {
+      const resp = await fetch(`${API_BASE_URL}/api/v1/projects/projects/${projectId}/members`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -567,7 +568,7 @@ export default function ProjectWorkspacePage() {
       const name = `Glioblastoma Study Summary - ${new Date().toLocaleDateString()}`;
       const content = `### NeuroGen Research Workspace Report\n\nGenerated for: ${project?.name}\nDate: ${new Date().toLocaleDateString()}\n\nThis compiled clinical document aggregates sequencing base pairs, mutation lollipop graphs (specifically detailing EGFR Exons 2-7 Deletions), and Kaplan-Meier overall survival comparisons for IDH1-mutant diffuse gliomas.\n\n* **Genomic alterations recorded**: EGFR amplification, TP53 missense mutations.\n* **Statistical Survival Evaluation**: Log-rank test demonstrates significance with p-value of 0.000412. The cohort with IDH1 mutations showed longer overall survival times.\n* **Biological pathway active sites**: Cytoscape networks maps upregulation of EGFR-KRAS cascade and downregulation of PTEN phosphatase activity.`;
       
-      const resp = await fetch(`http://localhost:8000/api/v1/reports/projects/${projectId}/reports`, {
+      const resp = await fetch(`${API_BASE_URL}/api/v1/reports/projects/${projectId}/reports`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -590,7 +591,7 @@ export default function ProjectWorkspacePage() {
   const triggerDownloadReport = async (reportId: number) => {
      if (!token) return;
      try {
-       const resp = await fetch(`http://localhost:8000/api/v1/reports/reports/${reportId}/download`, {
+       const resp = await fetch(`${API_BASE_URL}/api/v1/reports/reports/${reportId}/download`, {
           headers: { Authorization: `Bearer ${token}` }
        });
        if (resp.ok) {

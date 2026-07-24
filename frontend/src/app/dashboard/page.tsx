@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Brain, LogOut, Plus, FolderGit2, HardDrive, Cpu, FileCheck, Calendar, Bell, Loader, User2, MessageSquareText, ArrowRight } from "lucide-react";
+import { API_BASE_URL } from "@/utils/api";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -20,17 +21,16 @@ export default function DashboardPage() {
   const [createLoading, setCreateLoading] = useState(false);
 
   useEffect(() => {
+    // Check authentication
     const storedToken = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
-
     if (!storedToken || !storedUser) {
       router.push("/login");
       return;
     }
-
     setToken(storedToken);
     setUser(JSON.parse(storedUser));
-  }, [router]);
+  }, []);
 
   useEffect(() => {
     if (!token) return;
@@ -41,7 +41,7 @@ export default function DashboardPage() {
       
       try {
         // Fetch projects
-        const projResp = await fetch("http://localhost:8000/api/v1/projects/projects", {
+        const projResp = await fetch(`${API_BASE_URL}/api/v1/projects/projects`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (projResp.ok) {
@@ -53,7 +53,7 @@ export default function DashboardPage() {
 
       try {
         // Fetch notifications
-        const notifResp = await fetch("http://localhost:8000/api/v1/notifications/notifications", {
+        const notifResp = await fetch(`${API_BASE_URL}/api/v1/notifications/notifications`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (notifResp.ok) {
@@ -80,7 +80,7 @@ export default function DashboardPage() {
 
     setCreateLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/api/v1/projects/projects", {
+      const response = await fetch(`${API_BASE_URL}/api/v1/projects/projects`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -100,7 +100,7 @@ export default function DashboardPage() {
       setShowModal(false);
 
       // Trigger audit log internally
-      fetch("http://localhost:8000/api/v1/notifications/audit-logs", {
+      fetch(`${API_BASE_URL}/api/v1/notifications/audit-logs`, {
          method: "POST",
          headers: {
             "Content-Type": "application/json",
