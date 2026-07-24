@@ -2,6 +2,7 @@ import os
 import sys
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 
 # Ensure backend root is on sys.path
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
@@ -22,6 +23,9 @@ app = FastAPI(
     description="Unified single-process backend consolidating all 10 domain APIRouters.",
     version="6.0.0"
 )
+
+# Gzip compression for faster response payload transfer
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # CORS middleware for Next.js frontend communication
 app.add_middleware(
