@@ -197,44 +197,52 @@ def create_analysis(
     email: str = Depends(get_current_user_email),
     db: Session = Depends(get_db)
 ):
-    user = get_db_user(email, db)
-    verify_project_member(project_id, user.id, db)
-    
-    analysis = Analysis(
-        project_id=project_id,
-        name=data.name,
-        type=data.type,
-        created_by=user.id,
-        dataset_file_id=data.dataset_file_id
-    )
-    db.add(analysis)
-    db.commit()
-    db.refresh(analysis)
-    
-    job = AnalysisJob(
-        analysis_id=analysis.id,
-        status="Pending",
-        progress=0.0
-    )
-    db.add(job)
-    db.commit()
-    db.refresh(job)
-    
-    bg_tasks.add_task(run_analysis_pipeline, analysis.id, job.id, data.dataset_file_id, data.cohort_config)
-    
-    return {
-        "id": analysis.id,
-        "analysis_id": analysis.id,
-        "project_id": analysis.project_id,
-        "name": analysis.name,
-        "type": analysis.type,
-        "created_at": analysis.created_at.isoformat(),
-        "job": {
-            "id": job.id,
-            "status": job.status,
-            "progress": job.progress
+    try:
+        user = get_db_user(email, db)
+        verify_project_member(project_id, user.id, db)
+        
+        analysis = Analysis(
+            project_id=project_id,
+            name=data.name,
+            type=data.type,
+            created_by=user.id
+        )
+        if hasattr(Analysis, "dataset_file_id"):
+            setattr(analysis, "dataset_file_id", data.dataset_file_id)
+            
+        db.add(analysis)
+        db.commit()
+        db.refresh(analysis)
+        
+        job = AnalysisJob(
+            analysis_id=analysis.id,
+            status="Pending"
+        )
+        if hasattr(AnalysisJob, "progress"):
+            setattr(job, "progress", 0.0)
+
+        db.add(job)
+        db.commit()
+        db.refresh(job)
+        
+        bg_tasks.add_task(run_analysis_pipeline, analysis.id, job.id, data.dataset_file_id, data.cohort_config)
+        
+        return {
+            "id": analysis.id,
+            "analysis_id": analysis.id,
+            "project_id": analysis.project_id,
+            "name": analysis.name,
+            "type": analysis.type,
+            "created_at": analysis.created_at.isoformat(),
+            "job": {
+                "id": job.id,
+                "status": job.status,
+                "progress": getattr(job, "progress", 0.0)
+            }
         }
-    }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Pipeline error: {str(e)}")
 
 @router.get("/projects/{project_id}/analyses")
 @router.get("/projects/{project_id}")
