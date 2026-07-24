@@ -36,29 +36,15 @@ export default function DashboardPage() {
     if (!token) return;
 
     const fetchData = async () => {
-      let projData = [];
-      let notifData = [];
-      
       try {
-        // Fetch projects
-        const projResp = await fetch(`${API_BASE_URL}/api/v1/projects/projects`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (projResp.ok) {
-          projData = await projResp.json();
-        }
-      } catch (err) {
-        console.error("Error loading projects, loading demo fallback", err);
-      }
+        const headers = { Authorization: `Bearer ${token}` };
+        const [projResp, notifResp] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/v1/projects/projects`, { headers }),
+          fetch(`${API_BASE_URL}/api/v1/notifications/notifications`, { headers }),
+        ]);
 
-      try {
-        // Fetch notifications
-        const notifResp = await fetch(`${API_BASE_URL}/api/v1/notifications/notifications`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (notifResp.ok) {
-          notifData = await notifResp.json();
-        }
+        const projData = projResp.ok ? await projResp.json() : [];
+        const notifData = notifResp.ok ? await notifResp.json() : [];
 
         setProjects(projData);
         setNotifications(notifData);

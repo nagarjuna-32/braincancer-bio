@@ -92,66 +92,47 @@ export default function ProjectWorkspacePage() {
       let chats: any[] = [];
 
       try {
-        // Project info
-        const projResp = await fetch(`${API_BASE_URL}/api/v1/projects/projects/${projectId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (projResp.ok) {
-          projData = await projResp.json();
-        }
+        const headers = { Authorization: `Bearer ${token}` };
+        
+        // Execute all 6 initial workspace queries concurrently in parallel
+        const [projResp, datasetResp, analysisResp, reportsResp, memResp, chatResp] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/v1/projects/projects/${projectId}`, { headers }),
+          fetch(`${API_BASE_URL}/api/v1/datasets/projects/${projectId}/datasets`, { headers }),
+          fetch(`${API_BASE_URL}/api/v1/analyses/projects/${projectId}/analyses`, { headers }),
+          fetch(`${API_BASE_URL}/api/v1/reports/projects/${projectId}/reports`, { headers }),
+          fetch(`${API_BASE_URL}/api/v1/projects/projects/${projectId}/members`, { headers }),
+          fetch(`${API_BASE_URL}/api/v1/ai/projects/${projectId}/chats`, { headers }),
+        ]);
 
-        // Datasets
-        const datasetResp = await fetch(`${API_BASE_URL}/api/v1/datasets/projects/${projectId}/datasets`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        if (projResp.ok) projData = await projResp.json();
+        if (analysisResp.ok) analysisData = await analysisResp.json();
+        if (reportsResp.ok) repData = await reportsResp.json();
+        if (memResp.ok) memData = await memResp.json();
+        if (chatResp.ok) chats = await chatResp.json();
+
         if (datasetResp.ok) {
           dsData = await datasetResp.json();
           setDatasets(dsData);
-          
-          // Flatten files for display
-          for (const ds of dsData) {
-            const detailResp = await fetch(`${API_BASE_URL}/api/v1/datasets/datasets/${ds.id}`, {
-              headers: { Authorization: `Bearer ${token}` }
+
+          // Fetch dataset file details concurrently
+          if (dsData.length > 0) {
+            const detailResponses = await Promise.all(
+              dsData.map((ds: any) =>
+                fetch(`${API_BASE_URL}/api/v1/datasets/datasets/${ds.id}`, { headers })
+                  .then(r => (r.ok ? r.json() : null))
+                  .catch(() => null)
+              )
+            );
+
+            detailResponses.forEach((detail, idx) => {
+              if (detail && detail.files) {
+                const ds = dsData[idx];
+                detail.files.forEach((f: any) => {
+                  allFiles.push({ ...f, dataset_name: ds.name, dataset_id: ds.id });
+                });
+              }
             });
-            if (detailResp.ok) {
-              const detail = await detailResp.json();
-              detail.files.forEach((f: any) => {
-                allFiles.push({ ...f, dataset_name: ds.name, dataset_id: ds.id });
-              });
-            }
           }
-        }
-
-        // Analyses
-        const analysisResp = await fetch(`${API_BASE_URL}/api/v1/analyses/projects/${projectId}/analyses`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (analysisResp.ok) {
-          analysisData = await analysisResp.json();
-        }
-
-        // Reports
-        const reportsResp = await fetch(`${API_BASE_URL}/api/v1/reports/projects/${projectId}/reports`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (reportsResp.ok) {
-          repData = await reportsResp.json();
-        }
-
-        // Members
-        const memResp = await fetch(`${API_BASE_URL}/api/v1/projects/projects/${projectId}/members`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (memResp.ok) {
-          memData = await memResp.json();
-        }
-
-        // AI Chat sessions
-        const chatResp = await fetch(`${API_BASE_URL}/api/v1/ai/projects/${projectId}/chats`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (chatResp.ok) {
-          chats = await chatResp.json();
         }
       } catch (err) {
         console.error("Fetch details failed:", err);
