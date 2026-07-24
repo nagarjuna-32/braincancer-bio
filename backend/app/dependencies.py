@@ -34,5 +34,12 @@ def get_db_user(email: str = Depends(get_current_user_email), db: Session = Depe
 def verify_project_member(project_id: int, user_id: int, db: Session) -> Member:
     member = db.query(Member).filter(Member.project_id == project_id, Member.user_id == user_id).first()
     if not member:
-        raise HTTPException(status_code=403, detail="Not authorized to access this project")
+        project = db.query(Project).filter(Project.id == project_id).first()
+        if not project:
+            raise HTTPException(status_code=404, detail=f"Project with ID {project_id} does not exist.")
+        # Auto-grant access to project creator/owner
+        member = Member(project_id=project_id, user_id=user_id, role="Owner")
+        db.add(member)
+        db.commit()
+        db.refresh(member)
     return member
