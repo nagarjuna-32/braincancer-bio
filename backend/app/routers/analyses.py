@@ -276,17 +276,21 @@ def get_analysis_detail(analysis_id: int, email: str = Depends(get_current_user_
     
     job = analysis.jobs[0] if analysis.jobs else None
     
+    res_data = analysis.output_data or (job.result if (job and hasattr(job, "result")) else None)
     return {
         "id": analysis.id,
+        "analysis_id": analysis.id,
         "project_id": analysis.project_id,
         "name": analysis.name,
         "type": analysis.type,
-        "output_data": analysis.output_data,
+        "output_data": res_data,
         "created_at": analysis.created_at.isoformat(),
         "job": {
             "id": job.id if job else None,
             "status": job.status if job else "Completed",
-            "progress": job.progress if job else 100.0,
-            "error_log": job.error_log if job else None
+            "progress": getattr(job, "progress", 100.0) if job else 100.0,
+            "error": getattr(job, "error_log", None) if job else None,
+            "error_log": getattr(job, "error_log", None) if job else None,
+            "result": res_data
         }
     }

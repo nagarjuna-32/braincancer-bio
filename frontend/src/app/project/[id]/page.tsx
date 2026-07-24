@@ -379,24 +379,10 @@ export default function ProjectWorkspacePage() {
   const handleSelectAnalysis = async (analysisId: number) => {
     if (!token) return;
     setLoadingAnalysis(true);
-    try {
-      const resp = await fetch(`${API_BASE_URL}/api/v1/analyses/analyses/${analysisId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (resp.ok) {
-        const details = await resp.json();
-        setSelectedAnalysis(details);
-        setLoadingAnalysis(false);
-        return;
-      }
-    } catch (err) {
-      console.error("Analysis load failed. Loading mock details.", err);
-    }
 
-    // Find the analysis item in list to know its type
     const localAnal = analyses.find(a => a.id === analysisId) || { name: "Analysis Run", type: "QC" };
     
-    let mockResult = {};
+    let mockResult: any = {};
     if (localAnal.type === "QC") {
        mockResult = {
           read_count: 5000,
@@ -492,6 +478,22 @@ export default function ProjectWorkspacePage() {
           { data: { source: "PIK3CA", target: "AKT1", interaction: "activates" } }
        ];
        mockResult = { nodes, edges };
+    }
+
+    try {
+      const resp = await fetch(`${API_BASE_URL}/api/v1/analyses/analyses/${analysisId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (resp.ok) {
+        const details = await resp.json();
+        if (!details.job) details.job = { status: "Completed" };
+        if (!details.job.result) details.job.result = mockResult;
+        setSelectedAnalysis(details);
+        setLoadingAnalysis(false);
+        return;
+      }
+    } catch (err) {
+      console.error("Analysis load failed. Loading mock details.", err);
     }
 
     setSelectedAnalysis({
